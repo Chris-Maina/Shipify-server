@@ -8,7 +8,7 @@ const Shipment = require('../../../../models/shipment');
 router.get('/shipments', auth.required, async (req, res) => {
     const { user } = req;
     try {
-        const shipments = await Shipment.query().where('user_id', user.id).withGraphFetched('cargos');
+        const shipments = await Shipment.query().where('user_id', user.id).withGraphFetched('cargo');
         return res.status(200).json({
             data: shipments
         });
@@ -48,18 +48,16 @@ router.post('/shipments', auth.required, async (req, res) => {
         // Add cargo supplied
         await Promise.all(
             cargo.map(async el => {
-                const { type, description, volume } = el;
-                return await Cargo.query().insert({
-                    type,
-                    description,
-                    volume,
-                    shipment_id: shipment.id
-                });
-            })
+                const cargoInDB = await Cargo.query().findOne({ type: el.type });
+                if (cargoInDB) {
+                    const newCargo = { ...cargoInDB, ...el };
+                    await shipment.$relatedQuery('cargo').for(shipment.id).relate(newCargo)
+                    return shipment.$appendRelated('cargo', newCargo);
+                }
+                return await shipment.$relatedQuery('cargo').insert({ ...el });
+            }
+            )
         );
-
-        // find shipment after adding cargo
-        shipment = await Shipment.query().findById(shipment.id).withGraphFetched('cargos');
 
         return res.status(200).json({
             data: shipment
