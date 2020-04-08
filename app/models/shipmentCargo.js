@@ -16,12 +16,12 @@ class ShipmentCargo extends Model {
         const Cargo = require('./cargo');
         const Shipment = require('./shipment');
         return {
-            cargos: {
+            cargo: {
                 relation: Model.HasManyRelation,
                 modelClass: Cargo,
                 join: {
                     from: 'shipment_cargo.cargo_id',
-                    to: 'cargos.id'
+                    to: 'cargo.id'
                 }
             },
             shipments: {

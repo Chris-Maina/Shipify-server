@@ -8,20 +8,25 @@ class Shipment extends Model {
         return 'shipments';
     }
 
+    static get relatedInsertQueryMutates() {
+        return true;
+    }
+
     static get relationMappings() {
         const User = require('./user');
         const Cargo = require('./cargo');
         return {
-            cargos: {
+            cargo: {
                 relation: Model.ManyToManyRelation,
                 modelClass: Cargo,
                 join: {
                     from: 'shipments.id',
                     through: {
                         from: 'shipment_cargo.shipment_id',
-                        to: 'shipment_cargo.cargo_id'
+                        to: 'shipment_cargo.cargo_id',
+                        extra: ['volume']
                     },
-                    to: 'cargos.id'
+                    to: 'cargo.id'
                 }
             },
             users: {

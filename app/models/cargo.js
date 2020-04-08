@@ -5,7 +5,7 @@ Model.knex(knexConfig);
 
 class Cargo extends Model {
     static get tableName() {
-        return 'cargos';
+        return 'cargo';
     }
     static get relationMappings() {
         const Shipment = require('./shipment');
@@ -14,10 +14,11 @@ class Cargo extends Model {
                 relation: Model.ManyToManyRelation,
                 modelClass: Shipment,
                 join: {
-                    from: 'cargos.id',
+                    from: 'cargo.id',
                     through: {
                         from: 'shipment_cargo.cargo_id',
-                        to: 'shipment_cargo.shipment_id'
+                        to: 'shipment_cargo.shipment_id',
+                        extra: ['volume']
                     },
                     to: 'shipments.id'
                 }
