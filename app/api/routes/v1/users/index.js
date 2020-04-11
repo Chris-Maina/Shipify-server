@@ -6,19 +6,15 @@ require('./passport');
 
 router.post('/signup', auth.optional, async (req, res) => {
     const { body: { email, firstName, lastName, password } } = req;
-   
+
     if (!email) {
         return res.status(422).json({
-            errors: {
-                message: 'Email is required'
-            }
+            message: 'Email is required'
         });
     }
     if (!password) {
         return res.status(422).json({
-            errors: {
-                message: 'Password is required'
-            }
+            message: 'Password is required'
         })
     }
 
@@ -26,9 +22,7 @@ router.post('/signup', auth.optional, async (req, res) => {
         let user = await User.query().findOne('email', email)
 
         if (user) return res.status(409).json({
-            errors: {
-                message: 'A user with that email exists'
-            }
+            message: 'A user with that email exists'
         })
         // create a user instance
         user = await User.query().insert({
@@ -45,9 +39,8 @@ router.post('/signup', auth.optional, async (req, res) => {
 
     } catch (error) {
         return res.status(422).json({
-            errors: {
-                message: error.message
-            }
+            message: error.message,
+            error
         })
     }
 
@@ -58,16 +51,12 @@ router.post('/login', auth.optional, async (req, res, next) => {
 
     if (!email) {
         return res.status(422).json({
-            errors: {
-                message: 'Email is required'
-            }
+            message: 'Email is required'
         });
     }
     if (!password) {
         return res.status(422).json({
-            errors: {
-                message: 'Password is required'
-            }
+            message: 'Password is required'
         })
     }
 
@@ -79,6 +68,27 @@ router.post('/login', auth.optional, async (req, res, next) => {
 
         return res.status(200).json({ user: passportUser.toAuthJSON() });
     })(req, res, next);
-})
+});
+
+router.get('/user', auth.required, async (req, res) => {
+    const { user } = req;
+
+    try {
+        let userInToken = await User.query().findById(user.id);
+
+        userInToken = {
+            id: userInToken.id,
+            email: userInToken.email,
+            first_name: userInToken.first_name,
+            last_name: userInToken.last_name,
+        }
+        return res.status(200).json({ user: userInToken });
+    } catch (error) {
+        return res.status(403).json({
+            message: error.message,
+            error,
+        })
+    }
+});
 
 module.exports = router;
